@@ -3,21 +3,25 @@
 #ifdef TGL_BUILD_WINDOWS
 #include "Settings.hpp"
 #include "../OS/OperatingSystem.hpp"
+#include "../Rendering/Renderer.hpp"
 
 namespace TGL 
 {
-	class IRenderDevice;
-	class IInputDevice;
+	class RenderDevice;
+	class InputDevice;
 	class Application 
 	{
-		protected: 
-			IInputDevice* inputDevice = nullptr;
-			IRenderDevice* renderDevice = nullptr;
 		protected:
+			TGL::Renderer renderer;
+			TGL::ResourcePool resourcePool;
+
+			TGL::InputDevice* pInputDevice = nullptr;
+			TGL::RenderDevice* pRenderDevice = nullptr;
+
 			TGL::OS::WindowHandle hWnd;
 			TGL::OS::WINDOW_PARAM wndParam;
-			TGL::InputDeviceParameter inputParam;
 			TGL::ApplicationConfig config;
+			TGL::GraphicsSettings gfxSettings;
 		public:
 			Application();
 			virtual ~Application();

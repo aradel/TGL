@@ -15,8 +15,8 @@ namespace TGL
 			//InputDevice(const InputDevice&) = delete;
 			//InputDevice& operator==(const InputDevice&) = delete;
 		public:
-			bool Initialize(const TGL::InputDeviceParameter& param);
-			bool Shutdown(const TGL::InputDeviceParameter& param);
+			virtual bool Initialize(const TGL::InputDeviceParameter& param) = 0;
+			virtual bool Shutdown() = 0;
 		public:
 			void Update();
 			void OnInputStateChanged(TGL::Key key, bool state);

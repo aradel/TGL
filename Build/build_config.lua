@@ -80,7 +80,7 @@ local function SetupProject()
 		language "C++"
 		location(DIR_PROJECT)
 		targetdir(DIR_TARGET)
-
+		links { "d3d12", "dxgi" }
 		--includedirs { PCH_DIR }
 		--pchheader "pch.hpp"
 		--pchsource = "pch.cpp" 

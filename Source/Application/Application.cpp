@@ -1,6 +1,8 @@
 #include "Application.hpp"
 #include "../Devices/DeviceFactory.hpp"
 #include "../OS/Timer.hpp"
+#include "../Devices/Render/RenderDeviceD3D12.hpp"
+#include "../TGL.hpp"
 
 TGL::Application::Application() 
 {
@@ -14,8 +16,7 @@ TGL::Application::Application()
 
 TGL::Application::~Application() 
 {
-	delete inputDevice;
-	delete renderDevice;
+
 }
 
 bool TGL::Application::ReadConfig(TGL::ApplicationConfig& config)
@@ -23,32 +24,54 @@ bool TGL::Application::ReadConfig(TGL::ApplicationConfig& config)
 	//ToDo: Actually read from somewhere.
 	bool success = true;
 
-	config.renderer = TGL::ApplicationConfig::D3D11;
-	config.inputDevice = TGL::ApplicationConfig::RawInput;
+	config.renderDevice = TGL::InputDeviceType::RawInput;
+	config.inputDevice = TGL::RendererDeviceType::D3D12;
+
+	gfxSettings.fullscreen = false;
+	gfxSettings.screenSize.xWidth = wndParam.width;
+	gfxSettings.screenSize.yHeight = wndParam.height;
+	gfxSettings.trippleBuffering = false;
 
 	return success;
 }
 
 bool TGL::Application::Startup(const TGL::OS::APPLICATION_PARAM& aParam)
 {
-	bool success = ReadConfig(config);
-	if(success)
-	{
-		TGL::OS::WindowCreate(aParam, wndParam, hWnd);
-		
-		inputDevice = DeviceFactory::CreateInputDevice(config);
+	if (!ReadConfig(config)) { return false; }
 
-		inputParam.hWnd = Application::hWnd;
-		inputParam.type = InputDeviceParameter::Keyboard;
+	TGL::OS::WindowCreate(aParam, wndParam, hWnd);
 
-		inputDevice->Initialize(inputParam);
-	}
-	return success;
+	pInputDevice = DeviceFactory::CreateInputDevice(config.inputDevice);
+	pRenderDevice = DeviceFactory::CreateRenderDevice(config.renderDevice);
+
+	TGL::InputDeviceParameter inputParam;
+	inputParam.hWnd = Application::hWnd;
+	inputParam.type = InputDeviceParameter::Keyboard;
+
+	TGL::RenderDeviceParameter renderDeviceParam;
+	renderDeviceParam.hWnd = Application::hWnd;
+
+	if (!pInputDevice->Initialize(inputParam)) { return false; }
+	if (!pRenderDevice->Initialize(renderDeviceParam, gfxSettings)) { return false; }
+
+	TGL::RendererParameter rendererParam;
+
+	if (!resourcePool.Initialize()) { return false; }
+	if (!renderer.Initialize(rendererParam)) { return false; }
+
+	return true;
 }
 
 void TGL::Application::Shutdown(const TGL::OS::APPLICATION_PARAM& aParam)
 {
-	inputDevice->Shutdown(inputParam);
+	resourcePool.Shutdown();
+	renderer.Shutdown();
+
+	pInputDevice->Shutdown();
+	pRenderDevice->Shutdown();
+
+	TGL::DeviceFactory::DestroyDevice(pInputDevice);
+	TGL::DeviceFactory::DestroyDevice(pRenderDevice);
 
 	TGL::OS::WindowDestroy(hWnd, aParam);
 }
@@ -64,7 +87,7 @@ int TGL::Application::Run(const TGL::OS::APPLICATION_PARAM& aParam)
 		timer.Start();
 		while (msg.message != WM_QUIT)
 		{
-			inputDevice->Update();
+			pInputDevice->Update();
 			while ((PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)))
 			{
 				TranslateMessage(&msg);
@@ -91,7 +114,7 @@ int TGL::Application::Run(const TGL::OS::APPLICATION_PARAM& aParam)
 
 void TGL::Application::OnInputRecive(WPARAM wParam, LPARAM lParam)
 {
-	inputDevice->ReadInput(wParam, lParam);
+	pInputDevice->ReadInput(wParam, lParam);
 }
 
 //Application Calls

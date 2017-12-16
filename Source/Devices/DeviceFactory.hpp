@@ -1,16 +1,19 @@
 #ifndef DEVICE_FACTORY_HPP
 #define DEVICE_FACTORY_HPP
-
+#include "../TGL.hpp"
 
 namespace TGL 
 {
 	struct ApplicationConfig;
-	class IInputDevice;
-	class IRenderDevice;
+	class IDevice;
+	class InputDevice;
+	class RenderDevice;
 	namespace DeviceFactory 
 	{
-		TGL::IInputDevice* CreateInputDevice(const TGL::ApplicationConfig& param);
-		TGL::IRenderDevice* CreateRenderDevice(const TGL::ApplicationConfig& param);
+		TGL::InputDevice* CreateInputDevice(TGL::CFG_VAR type);
+		TGL::RenderDevice* CreateRenderDevice(TGL::CFG_VAR type);
+
+		void DestroyDevice(TGL::IDevice* pDevice);
 	};
 }
 

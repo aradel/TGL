@@ -3,9 +3,7 @@
 
 namespace TGL 
 {
-
 	bool IsFloatPrime(float fValue) { return false; }
-
 }
 
 

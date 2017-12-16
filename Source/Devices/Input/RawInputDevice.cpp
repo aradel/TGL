@@ -12,7 +12,7 @@ TGL::RawInputDevice::~RawInputDevice()
 
 }
 
-bool TGL::RawInputDevice::Initialize(const InputDeviceParameter& param)
+bool TGL::RawInputDevice::Initialize(const TGL::InputDeviceParameter& param)
 {
 	bool result_success = false;
 
@@ -26,26 +26,30 @@ bool TGL::RawInputDevice::Initialize(const InputDeviceParameter& param)
 		const USHORT RAW_INPUT_MOUSE = 0x02;
 		rid[0].usUsage = RAW_INPUT_MOUSE;
 		result_success = RegisterRawInputDevices(rid, 1, sizeof(rid[0])) == TRUE;
+		registeredDevices.push_back(rid[0]);
 	}
 	if (param.type == InputDeviceParameter::Keyboard)
 	{
 		const USHORT RAW_INPUT_KEYBOARD = 0x06;
 		rid[0].usUsage = RAW_INPUT_KEYBOARD;
 		result_success = RegisterRawInputDevices(rid, 1, sizeof(rid[0])) == TRUE;
+		registeredDevices.push_back(rid[0]);
 	}
 
 	return result_success;
 }
 
-bool TGL::RawInputDevice::Shutdown(const InputDeviceParameter& param)
+bool TGL::RawInputDevice::Shutdown()
 {
+	bool success = false;
 	RAWINPUTDEVICE rid[1];
-	rid[0].usUsagePage = 0x01;
-	rid[0].usUsage = 0x06;
-	rid[0].dwFlags = RIDEV_REMOVE; 
-	rid[0].hwndTarget = param.hWnd;
-
-	return RegisterRawInputDevices(rid, 1, sizeof(rid[0])) == TRUE;
+	for (auto device : registeredDevices) 
+	{
+		rid[0] = device;
+		rid[0].dwFlags = RIDEV_REMOVE;
+		success |= RegisterRawInputDevices(rid, 1, sizeof(rid[0])) == TRUE;
+	}
+	return success;
 }
 
 void TGL::RawInputDevice::ReadInput(WPARAM wParam, LPARAM lParam)

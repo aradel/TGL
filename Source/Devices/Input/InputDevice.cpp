@@ -13,16 +13,6 @@ TGL::InputDevice::~InputDevice()
 
 }
 
-bool TGL::InputDevice::Initialize(const TGL::InputDeviceParameter& param)
-{
-	return true;
-}
-
-bool TGL::InputDevice::Shutdown(const TGL::InputDeviceParameter& param)
-{
-	return true;
-}
-
 void TGL::InputDevice::Update() 
 {
 	for (size_t i = 0; i < 256; i++) 

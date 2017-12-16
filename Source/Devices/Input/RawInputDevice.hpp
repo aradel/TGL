@@ -10,14 +10,15 @@ namespace TGL
 	{
 		private:
 			std::vector<BYTE> rawBuffer;
+			std::vector<RAWINPUTDEVICE> registeredDevices;
 		public:
 			RawInputDevice();
 			virtual ~RawInputDevice();
 		public:
 			void ReadInput(WPARAM wParam, LPARAM lParam);
 		public:
-			virtual bool Initialize(const InputDeviceParameter& param);
-			virtual bool Shutdown(const InputDeviceParameter& param);
+			virtual bool Initialize(const TGL::InputDeviceParameter& param);
+			virtual bool Shutdown();
 
 	};
 }
