@@ -99,11 +99,10 @@ void TGL::RenderDeviceD3D12::OnSettingsChanged(const TGL::GraphicsSettings& sett
 
 }
 
-bool TGL::RenderDeviceD3D12::SetPipelineState(const TGL::PipelineState& pipeline) 
+TGL::CommandList* TGL::RenderDeviceD3D12::CreateCommandList()
 {
-	return true;
+	return nullptr;
 }
-
 
 ////////////////////////////////////////////////////
 // D3D Setup Helpers

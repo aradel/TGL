@@ -5,12 +5,12 @@ TGL::Viewport::Viewport()
 	
 }
 
-TGL::Viewport::Viewport(uint16 xTop, uint16 yTop, uint16 xBottom, uint16 yBottom) 
+TGL::Viewport::Viewport(uint16 xTopLeft, uint16 yTopLeft, uint16 xWidth, uint16 yHeight)
 {
-	this->xTop = xTop; 
-	this->yTop = yTop;
-	this->xBottom = xBottom;
-	this->yBottom = yBottom;
+	this->xTopLeft = xTopLeft;
+	this->yTopLeft = yTopLeft;
+	this->xWidth = xWidth;
+	this->yHeight = yHeight;
 }
 
 TGL::Viewport::~Viewport() 

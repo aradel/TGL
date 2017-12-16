@@ -8,7 +8,8 @@ namespace TGL
 #ifdef TGL_BUILD_WINDOWS
 	struct DXGIContext;
 #endif
-	class PipelineState;
+
+	class CommandList;
 	class RenderDevice : public TGL::IRenderDevice
 	{
 		protected:
@@ -26,10 +27,11 @@ namespace TGL
 			virtual bool Initialize(const TGL::RenderDeviceParameter& param, const TGL::GraphicsSettings& settings) override = 0;
 			virtual void Shutdown() = 0;
 
+			virtual TGL::CommandList* CreateCommandList() = 0;
+
 			virtual void OnScreenSizeChanged(const TGL::ScreenSize& size) = 0;
 			virtual void OnSettingsChanged(const TGL::GraphicsSettings& settings) = 0;
 
-			virtual bool SetPipelineState(const TGL::PipelineState& pipeline) = 0;
 			//virtual void* GetNativeDevice() = 0;
 	};
 }

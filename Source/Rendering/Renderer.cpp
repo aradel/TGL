@@ -5,9 +5,13 @@
 bool TGL::Renderer::Initialize(const TGL::RendererParameter& param)
 {
 	bool success = false;
+	const TGL::GraphicsSettings& gfxSettings = param.gfxSettings;
 
+	viewport.xTopLeft = 0;
+	viewport.yTopLeft = 0;
+	viewport.xWidth = uint16(gfxSettings.screenSize.xWidth);
+	viewport.yHeight = uint16(gfxSettings.screenSize.yHeight);
 
-	
 	return true;
 }
 

@@ -8,7 +8,7 @@ namespace TGL
 {
 	struct RendererParameter
 	{
-		TGL::GraphicsSettings settings;
+		TGL::GraphicsSettings gfxSettings;
 	};
 	struct Viewport;
 	class Renderer 

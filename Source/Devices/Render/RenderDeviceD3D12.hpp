@@ -40,10 +40,12 @@ namespace TGL
 			bool Initialize(const TGL::RenderDeviceParameter& param, const TGL::GraphicsSettings& settings) override;
 			void Shutdown() override;
 			
+			TGL::CommandList* CreateCommandList() override;
+
+
 			void OnScreenSizeChanged(const TGL::ScreenSize& size) override;
 			void OnSettingsChanged(const TGL::GraphicsSettings& settings) override;
 
-			bool SetPipelineState(const TGL::PipelineState& pipeline) override;
 		
 #ifdef DEBUG
 		private:

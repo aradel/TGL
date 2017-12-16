@@ -1,0 +1,18 @@
+
+Project/TGL Project.sln
+Project/TGL Project.vcxproj.filters
+Project/TGL Project.vcxproj
+Project/obj/Win32/Debug/TGL Project.tlog/TGL Project.lastbuildstate
+Binaries/Debug/TGL Project.exe
+Binaries/Debug/TGL Project.ilk
+Binaries/Debug/TGL Project.pdb
+Build/premake5.exe
+Project/.vs/TGL Project/v15/Browse.VC.db
+Project/.vs/TGL Project/v15/.suo
+*.obj
+*.tlog
+Project/.vs/TGL Project/v15/ipch/AutoPCH/b557ae4ef986d355/COMMANDLIST.ipch
+Project/obj/Win32/Debug/TGL Project.log
+Project/obj/Win32/Debug/vc141.pdb
+Project/obj/Win32/Debug/vc141.idb
+Project/.vs/TGL Project/v15/Browse.VC.opendb

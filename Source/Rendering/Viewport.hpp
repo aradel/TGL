@@ -6,13 +6,13 @@ namespace TGL
 {
 	struct Viewport 
 	{
-		uint16 xTop = 0;
-		uint16 yTop = 0;
-		uint16 xBottom = 0;
-		uint16 yBottom = 0;
+		uint16 xTopLeft = 0;
+		uint16 yTopLeft = 0;
+		uint16 xWidth = 0;
+		uint16 yHeight = 0;
 		
 		Viewport();
-		Viewport(uint16 xTop, uint16 yTop, uint16 xBottom, uint16 yBottom);
+		Viewport(uint16 xTopLeft, uint16 yTopLeft, uint16 xWidth, uint16 yHeight);
 		~Viewport();
 	};
 }
