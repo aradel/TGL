@@ -12,7 +12,7 @@ void Game::CleanUp()
 
 bool Game::Update(float fDeltaTime) 
 {
-	if (pInputDevice->IsKeyDown(TGL::Key::Escape))
+	if (pInputDevice->IsKeyDown(TGL::Input::Key::Escape))
 		return false;
 
 	return true;

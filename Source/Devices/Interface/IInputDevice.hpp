@@ -36,12 +36,12 @@ namespace TGL
 	{
 		public:
 			virtual void Update() = 0;
-			virtual void OnInputStateChanged(TGL::Key key, bool state) = 0;
+			virtual void OnInputStateChanged(TGL::Input::Key key, bool state) = 0;
 
-			virtual bool IsKeyDown(TGL::Key key) const = 0;
-			virtual bool IsKeyUp(TGL::Key key) const = 0;
-			virtual bool IsKeyPressed(TGL::Key key) const = 0;
-			virtual bool IsKeyReleased(TGL::Key key) const = 0;
+			virtual bool IsKeyDown(TGL::Input::Key key) const = 0;
+			virtual bool IsKeyUp(TGL::Input::Key key) const = 0;
+			virtual bool IsKeyPressed(TGL::Input::Key key) const = 0;
+			virtual bool IsKeyReleased(TGL::Input::Key key) const = 0;
 #ifdef TGL_BUILD_WINDOWS
 			virtual void ReadInput(WPARAM wParam, LPARAM lParam) = 0;
 #endif

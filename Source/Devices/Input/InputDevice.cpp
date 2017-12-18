@@ -22,27 +22,27 @@ void TGL::InputDevice::Update()
 	}
 }
 
-void TGL::InputDevice::OnInputStateChanged(TGL::Key key, bool state)
+void TGL::InputDevice::OnInputStateChanged(TGL::Input::Key key, bool state)
 {
 	cStateDown.state[key] = state;
 }
 
-bool TGL::InputDevice::IsKeyDown(TGL::Key key) const
+bool TGL::InputDevice::IsKeyDown(TGL::Input::Key key) const
 {
 	return cStateDown.state[key];
 }
 
-bool TGL::InputDevice::IsKeyUp(TGL::Key key) const 
+bool TGL::InputDevice::IsKeyUp(TGL::Input::Key key) const
 {
 	return !cStateDown.state[key];
 }
 
-bool TGL::InputDevice::IsKeyPressed(TGL::Key key) const 
+bool TGL::InputDevice::IsKeyPressed(TGL::Input::Key key) const
 {
 	return !pStateDown.state[key] && cStateDown.state[key];
 }
 
-bool TGL::InputDevice::IsKeyReleased(TGL::Key key) const 
+bool TGL::InputDevice::IsKeyReleased(TGL::Input::Key key) const
 {
 	return pStateDown.state[key] && !cStateDown.state[key];
 }

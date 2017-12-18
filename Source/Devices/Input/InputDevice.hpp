@@ -19,12 +19,12 @@ namespace TGL
 			virtual bool Shutdown() = 0;
 		public:
 			void Update();
-			void OnInputStateChanged(TGL::Key key, bool state);
+			void OnInputStateChanged(TGL::Input::Key key, bool state);
 
-			bool IsKeyDown(TGL::Key key) const;
-			bool IsKeyUp(TGL::Key key) const;
-			bool IsKeyPressed(TGL::Key key) const;
-			bool IsKeyReleased(TGL::Key key) const;
+			bool IsKeyDown(TGL::Input::Key key) const;
+			bool IsKeyUp(TGL::Input::Key key) const;
+			bool IsKeyPressed(TGL::Input::Key key) const;
+			bool IsKeyReleased(TGL::Input::Key key) const;
 		public:
 #ifdef TGL_BUILD_WINDOWS
 			virtual void ReadInput(WPARAM wParam, LPARAM lParam);

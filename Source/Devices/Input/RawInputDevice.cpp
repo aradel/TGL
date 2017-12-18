@@ -74,7 +74,7 @@ void TGL::RawInputDevice::ReadInput(WPARAM wParam, LPARAM lParam)
 		else if (raw->data.keyboard.Flags == RI_KEY_MAKE)
 			isKeyDown = true;
 
-		OnInputStateChanged(TGL::Key(raw->data.keyboard.VKey), isKeyDown);
+		OnInputStateChanged(TGL::Input::Key(raw->data.keyboard.VKey), isKeyDown);
 	}
 	else if (raw->header.dwType == RIM_TYPEMOUSE)
 	{
