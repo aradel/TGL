@@ -9,22 +9,22 @@ namespace TGL
 	struct RendererParameter
 	{
 		TGL::GraphicsSettings gfxSettings;
+		TGL::RenderDevice* pDevice;
 	};
-	struct Viewport;
+
 	class Renderer 
 	{
 		private:
 			TGL::GraphicsSettings settings;
-			TGL::Viewport viewport;
+			TGL::ViewPort viewport;
+			
+			TGL::CommandListPtr pCmdList;
 		public:
 			Renderer() = default;
 			~Renderer() = default;
 
 			bool Initialize(const TGL::RendererParameter& param);
 			void Shutdown();
-
-			void SetViewport(const TGL::Viewport& viewport);
-			TGL::Viewport GetViewport();
 		public:
 			void OnScreenSizeChaged();
 			void OnSettingsChanged(const TGL::GraphicsSettings settings);

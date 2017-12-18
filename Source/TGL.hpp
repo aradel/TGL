@@ -4,7 +4,6 @@
 #include <cassert>
 namespace TGL
 {
-
 #if _MSC_VER && !__INTEL_COMPILER
 	typedef unsigned __int8 int8;
 	typedef unsigned __int16 int16;

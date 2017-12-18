@@ -55,6 +55,8 @@ bool TGL::Application::Startup(const TGL::OS::APPLICATION_PARAM& aParam)
 	if (!pRenderDevice->Initialize(renderDeviceParam, gfxSettings)) { return false; }
 
 	TGL::RendererParameter rendererParam;
+	rendererParam.gfxSettings = gfxSettings;
+	rendererParam.pDevice = pRenderDevice;
 
 	if (!resourcePool.Initialize()) { return false; }
 	if (!renderer.Initialize(rendererParam)) { return false; }

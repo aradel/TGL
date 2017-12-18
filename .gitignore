@@ -16,3 +16,4 @@ Project/obj/Win32/Debug/TGL Project.log
 Project/obj/Win32/Debug/vc141.pdb
 Project/obj/Win32/Debug/vc141.idb
 Project/.vs/TGL Project/v15/Browse.VC.opendb
+*.ipch

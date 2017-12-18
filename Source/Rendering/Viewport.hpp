@@ -4,16 +4,16 @@
 #include "../TGL.hpp"
 namespace TGL 
 {
-	struct Viewport 
+	struct ViewPort
 	{
 		uint16 xTopLeft = 0;
 		uint16 yTopLeft = 0;
 		uint16 xWidth = 0;
 		uint16 yHeight = 0;
 		
-		Viewport();
-		Viewport(uint16 xTopLeft, uint16 yTopLeft, uint16 xWidth, uint16 yHeight);
-		~Viewport();
+		ViewPort();
+		ViewPort(uint16 xTopLeft, uint16 yTopLeft, uint16 xWidth, uint16 yHeight);
+		~ViewPort();
 	};
 }
 #endif

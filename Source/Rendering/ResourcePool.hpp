@@ -8,7 +8,7 @@ namespace TGL
 	class ResourcePool
 	{
 		private:
-	
+			//TGL::DescriptorHeapCollection descriptorCollection;
 		public:
 			bool Initialize();
 			void Shutdown();

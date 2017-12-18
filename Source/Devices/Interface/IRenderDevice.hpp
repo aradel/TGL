@@ -1,6 +1,7 @@
 #ifndef IRENDER_DEVICE_HPP
 #define IRENDER_DEVICE_HPP
 #include "IDevice.hpp"
+#include "../../TGL.hpp"
 namespace TGL 
 {
 	struct GraphicsSettings;

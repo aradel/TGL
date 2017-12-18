@@ -1,6 +1,7 @@
 #include "Renderer.hpp"
 #include "../Devices/DeviceFactory.hpp"
 #include "../Rendering/Viewport.hpp"
+#include "../Rendering/CommandList.hpp"
 
 bool TGL::Renderer::Initialize(const TGL::RendererParameter& param)
 {
@@ -12,22 +13,14 @@ bool TGL::Renderer::Initialize(const TGL::RendererParameter& param)
 	viewport.xWidth = uint16(gfxSettings.screenSize.xWidth);
 	viewport.yHeight = uint16(gfxSettings.screenSize.yHeight);
 
+	pCmdList = param.pDevice->CreateCommandList();
+
 	return true;
 }
 
 void TGL::Renderer::Shutdown()
 {
-
-}
-
-void TGL::Renderer::SetViewport(const TGL::Viewport& viewport)
-{
-	this->viewport = viewport;
-}
-
-TGL::Viewport TGL::Renderer::GetViewport()
-{
-	return viewport;
+	pCmdList->Release();
 }
 
 void TGL::Renderer::OnScreenSizeChaged() 

@@ -22,7 +22,6 @@ namespace TGL
 	{
 		ID3D12Device* pDevice = nullptr;
 		ID3D12CommandQueue* pCmdQueue = nullptr;
-		ID3D12CommandAllocator* pCmdAllocator = nullptr;
 	};
 
 	class RenderDeviceD3D12 final : public TGL::RenderDevice
@@ -30,7 +29,7 @@ namespace TGL
 		private:
 			DXGIContext dxgi;
 			D3D12Context d3d;
-			TGL::DescriptorHeap descriptorHeap;
+			TGL::DescriptorHeap bbHeap;
 		public:
 			RenderDeviceD3D12();
 			~RenderDeviceD3D12();
@@ -40,8 +39,8 @@ namespace TGL
 			bool Initialize(const TGL::RenderDeviceParameter& param, const TGL::GraphicsSettings& settings) override;
 			void Shutdown() override;
 			
-			TGL::CommandList* CreateCommandList() override;
-
+			TGL::CommandListPtr CreateCommandList() override;
+			void ExecuteCommandList(TGL::CommandList* pCmdList) override;
 
 			void OnScreenSizeChanged(const TGL::ScreenSize& size) override;
 			void OnSettingsChanged(const TGL::GraphicsSettings& settings) override;

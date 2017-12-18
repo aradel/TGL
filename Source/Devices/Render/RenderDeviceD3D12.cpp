@@ -1,8 +1,8 @@
 #include "RenderDeviceD3D12.hpp"
-
-#include "../../TGL.hpp"
 #include "../../Rendering/PipelineState.hpp"
-
+#include "../../Rendering/CommandList.hpp"
+#include "../../Rendering/D3D12Helpers.hpp"
+#include "../../TGL.hpp"
 #include <dxgi.h>
 #include <vector>
 #include <string>
@@ -18,7 +18,6 @@ namespace Helpers
 	static bool EnumrateAdapters(TGL::DXGIContext& dxgi, TGL::GraphicsCardInfo& info);
 	static bool CreateD3DDevice(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d);
 	static bool CreateCommandQueue(TGL::D3D12Context& d3d);
-	static bool CreateCommandAllocator(TGL::D3D12Context& d3d);
 
 	// DXGI SwapChain Helpers
 	static bool EnumrateOutputs(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, TGL::DisplayInfo& display, const TGL::GraphicsSettings& settings);
@@ -26,7 +25,7 @@ namespace Helpers
 
 	// Support Functions
 	static bool CheckTearingSupport(TGL::DXGIContext& context);
-
+	static size_t NumberOfBackbuffers(bool trippleBuffering);
 	// Error Handling
 	static bool SetErrorIfFailed(HRESULT hResult);
 	static void ShowErrorMessage(DWORD eMsg);
@@ -46,21 +45,48 @@ bool TGL::RenderDeviceD3D12::Initialize(const TGL::RenderDeviceParameter& param,
 #ifdef DEBUG
 	dbgCtrl.Initialize();
 #endif
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+	rtvHeapDesc.NumDescriptors = 3;
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
 	bool success = false;
 	success = Helpers::CreateDXGIFactory(dxgi);				if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
 	success = Helpers::EnumrateAdapters(dxgi, gfxCardInfo);	if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
 	success = Helpers::CreateD3DDevice(dxgi, d3d);			if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
 	success = Helpers::CreateCommandQueue(d3d);				if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
-	success = Helpers::CreateCommandAllocator(d3d);			if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
 
-	success = descriptorHeap.Initialize(d3d);				if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
+	// Temp Code
+	HRESULT local_result = d3d.pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&bbHeap.pHeap));
+	bbHeap.stride = d3d.pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	bbHeap.nAllocated = rtvHeapDesc.NumDescriptors;
+	bbHeap.size = bbHeap.stride * bbHeap.nAllocated;
 
+	success = Helpers::SetErrorIfFailed(local_result);
+	if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
+
+
+	// Break Out later to separate Function
 	success = Helpers::EnumrateOutputs(dxgi, d3d, displayInfo, settings);			
 	if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
 	
 	success = Helpers::CreateSwapChain(dxgi, d3d, displayInfo, settings, param);	
 	if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
+
+	D3D12_CPU_DESCRIPTOR_HANDLE bbCpuHandle = bbHeap.pHeap->GetCPUDescriptorHandleForHeapStart();
+	size_t stride = bbHeap.stride;
+
+	ID3D12Resource* x[4];
+	size_t nBuffers = Helpers::NumberOfBackbuffers(settings.trippleBuffering);
+	for (size_t i = 0; i < nBuffers; i++)
+	{
+		dxgi.pSwapChain->GetBuffer(i, IID_PPV_ARGS(&x[i]));
+		d3d.pDevice->CreateRenderTargetView(x[i], nullptr, bbCpuHandle);
+
+		bbCpuHandle = TGL::OffsetCpuDescriptor(bbCpuHandle, 1, stride);
+
+		x[i]->Release();
+	}
 
 RENDER_DEVICE_INITIALIZE_EXIT:
 	if (!success)
@@ -68,19 +94,19 @@ RENDER_DEVICE_INITIALIZE_EXIT:
 		Helpers::ShowErrorMessage(GetLastError());
 		Shutdown();
 	}
-
 	return success;
 }
 
 void TGL::RenderDeviceD3D12::Shutdown()
 {
-	descriptorHeap.Shutdown();
+	//descriptorCollection.Shutdown();
+
+	bbHeap.pHeap->Release();
 
 	if (dxgi.pFactory)		{ dxgi.pFactory->Release();			dxgi.pFactory = nullptr; }
 	if (dxgi.pAdapter)		{ dxgi.pAdapter->Release();			dxgi.pAdapter = nullptr; }
 	if (dxgi.pSwapChain)	{ dxgi.pSwapChain->Release();		dxgi.pSwapChain = nullptr; }
 
-	if (d3d.pCmdAllocator)	{ d3d.pCmdAllocator->Release(); 	d3d.pCmdAllocator = nullptr; }
 	if (d3d.pCmdQueue)		{ d3d.pCmdQueue->Release();			d3d.pCmdQueue = nullptr; }
 	if (d3d.pDevice)		{ d3d.pDevice->Release();			d3d.pDevice = nullptr; }
 
@@ -88,6 +114,58 @@ void TGL::RenderDeviceD3D12::Shutdown()
 	dbgCtrl.Release();
 #endif
 }
+
+TGL::CommandListPtr TGL::RenderDeviceD3D12::CreateCommandList()
+{
+	bool success = false;
+
+	UINT gpuMask = 0x0; //Don't care about multi GPUs
+	HRESULT local_result = E_FAIL;
+	D3D12_COMMAND_LIST_TYPE type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+	ID3D12CommandAllocator* pLocalAllocator = nullptr;
+	ID3D12GraphicsCommandList* pLocalCmdList = nullptr;
+	TGL::CommandListD3D12* pLocalReturn = new TGL::CommandListD3D12();
+
+	success = (pLocalReturn != nullptr);	
+	if (!success) { goto RENDER_DEVICE_CREATE_CMD_LIST_EXIT; }
+
+	local_result = d3d.pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(&pLocalAllocator));
+	success = SUCCEEDED(local_result);		
+	if (!success) { goto RENDER_DEVICE_CREATE_CMD_LIST_EXIT; }
+
+	local_result = d3d.pDevice->CreateCommandList(gpuMask, type, pLocalAllocator, nullptr, IID_PPV_ARGS(&pLocalCmdList));
+	success = SUCCEEDED(local_result);	
+RENDER_DEVICE_CREATE_CMD_LIST_EXIT:
+	TGL::CommandListPtr local_return(nullptr);
+	if (success)
+	{
+		pLocalReturn->pCmdAllocator = pLocalAllocator;
+		pLocalReturn->pCmdList = pLocalCmdList;
+		local_return.reset(pLocalReturn);
+	}
+	else
+	{
+		if (pLocalAllocator) { pLocalAllocator->Release(); }
+		if (pLocalCmdList) { pLocalCmdList->Release(); }
+
+		delete pLocalReturn;
+	}
+
+	return local_return;
+}
+
+
+void TGL::RenderDeviceD3D12::ExecuteCommandList(TGL::CommandList* pCmdList) 
+{
+	CommandListD3D12* pList = dynamic_cast<CommandListD3D12*>(pCmdList);
+	if (pList) 
+	{
+		ID3D12CommandList* ppCommandLists[] = { pList->pCmdList };
+		d3d.pCmdQueue->ExecuteCommandLists(1, ppCommandLists);
+	}	
+}
+
 
 void TGL::RenderDeviceD3D12::OnScreenSizeChanged(const TGL::ScreenSize& size) 
 {
@@ -99,10 +177,6 @@ void TGL::RenderDeviceD3D12::OnSettingsChanged(const TGL::GraphicsSettings& sett
 
 }
 
-TGL::CommandList* TGL::RenderDeviceD3D12::CreateCommandList()
-{
-	return nullptr;
-}
 
 ////////////////////////////////////////////////////
 // D3D Setup Helpers
@@ -164,13 +238,6 @@ bool Helpers::CreateCommandQueue(TGL::D3D12Context& d3d)
 	return Helpers::SetErrorIfFailed(local_result);
 }
 
-bool Helpers::CreateCommandAllocator(TGL::D3D12Context& d3d)
-{
-	D3D12_COMMAND_LIST_TYPE type = D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT;
-	HRESULT local_result = d3d.pDevice->CreateCommandAllocator(type, IID_PPV_ARGS(&d3d.pCmdAllocator));
-
-	return Helpers::SetErrorIfFailed(local_result);
-}
 
 ////////////////////////////////////////////////////
 // DXGI SwapChain Helpers
@@ -229,7 +296,7 @@ bool Helpers::CreateSwapChain(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, co
 	swapChainDesc.BufferUsage = usageFlag;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0x0;
-	swapChainDesc.BufferCount = settings.trippleBuffering ? 2 : 3;
+	swapChainDesc.BufferCount = Helpers::NumberOfBackbuffers(settings.trippleBuffering);
 	swapChainDesc.Scaling = dxgi.scaling;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE::DXGI_ALPHA_MODE_UNSPECIFIED; //Might need to change later
@@ -263,6 +330,11 @@ bool Helpers::CheckTearingSupport(TGL::DXGIContext& dxgi)
 	BOOL allowTearing = FALSE;
 	HRESULT local_result = dxgi.pFactory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allowTearing, sizeof(allowTearing));
 	return SUCCEEDED(local_result) && allowTearing;
+}
+
+size_t Helpers::NumberOfBackbuffers(bool trippleBuffering)
+{
+	return trippleBuffering ? 2 : 3;
 }
 
 bool Helpers::SetErrorIfFailed(HRESULT hResult)

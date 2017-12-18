@@ -1,11 +1,11 @@
 #include "Viewport.hpp"
 
-TGL::Viewport::Viewport() 
+TGL::ViewPort::ViewPort()
 {
 	
 }
 
-TGL::Viewport::Viewport(uint16 xTopLeft, uint16 yTopLeft, uint16 xWidth, uint16 yHeight)
+TGL::ViewPort::ViewPort(uint16 xTopLeft, uint16 yTopLeft, uint16 xWidth, uint16 yHeight)
 {
 	this->xTopLeft = xTopLeft;
 	this->yTopLeft = yTopLeft;
@@ -13,7 +13,7 @@ TGL::Viewport::Viewport(uint16 xTopLeft, uint16 yTopLeft, uint16 xWidth, uint16 
 	this->yHeight = yHeight;
 }
 
-TGL::Viewport::~Viewport() 
+TGL::ViewPort::~ViewPort()
 {
 
 }
