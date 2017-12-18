@@ -1,15 +1,17 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 #include "ResourcePool.hpp"
-#include "../Devices/Render/RenderDevice.hpp"
+#include "../Rendering/Viewport.hpp"
+#include "../Rendering/CommandList.hpp"
 #include "../Application/Settings.hpp"
 #include "../TGL.hpp"
 namespace TGL 
 {
+	class GraphicsDevice;
 	struct RendererParameter
 	{
 		TGL::GraphicsSettings gfxSettings;
-		TGL::RenderDevice* pDevice;
+		TGL::GraphicsDevice* pDevice;
 	};
 
 	class Renderer 

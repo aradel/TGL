@@ -2,7 +2,7 @@
 #include "../Application/Settings.hpp"
 #ifdef  TGL_BUILD_WINDOWS
 #include "../Devices/Input/RawInputDevice.hpp"
-#include "../Devices/Render/RenderDeviceD3D12.hpp"
+#include "../Devices/Graphics/GraphicsDeviceD3D12.hpp"
 #include "../TGL.hpp"
 
 TGL::InputDevice* TGL::DeviceFactory::CreateInputDevice(TGL::CFG_VAR type)
@@ -24,9 +24,9 @@ TGL::InputDevice* TGL::DeviceFactory::CreateInputDevice(TGL::CFG_VAR type)
 }
 
 
-TGL::RenderDevice* TGL::DeviceFactory::CreateRenderDevice(TGL::CFG_VAR type)
+TGL::GraphicsDevice* TGL::DeviceFactory::CreateGraphicsDevice(TGL::CFG_VAR type)
 {
-	TGL::RenderDevice* local_return = nullptr;
+	TGL::GraphicsDevice* local_return = nullptr;
 
 	switch (type)
 	{
@@ -35,7 +35,7 @@ TGL::RenderDevice* TGL::DeviceFactory::CreateRenderDevice(TGL::CFG_VAR type)
 			break;
 
 		case TGL::RendererDeviceType::D3D12:
-			local_return = new TGL::RenderDeviceD3D12();
+			local_return = new TGL::GraphicsDeviceD3D12();
 			break;
 		case TGL::RendererDeviceType::OpenGL:
 			local_return = nullptr;

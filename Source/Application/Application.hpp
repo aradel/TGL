@@ -7,7 +7,7 @@
 
 namespace TGL 
 {
-	class RenderDevice;
+	class GraphicsDevice;
 	class InputDevice;
 	class Application 
 	{
@@ -16,7 +16,7 @@ namespace TGL
 			TGL::ResourcePool resourcePool;
 
 			TGL::InputDevice* pInputDevice = nullptr;
-			TGL::RenderDevice* pRenderDevice = nullptr;
+			TGL::GraphicsDevice* pRenderDevice = nullptr;
 
 			TGL::OS::WindowHandle hWnd;
 			TGL::OS::WINDOW_PARAM wndParam;

@@ -1,8 +1,8 @@
 #ifndef COMMAND_LIST_HPP
 #define COMMAND_LIST_HPP
-#include <d3d12.h>
 #include "../TGL.hpp"
-
+#include <d3d12.h>
+#include <memory>
 namespace TGL 
 {
 	struct ViewPort;
@@ -19,6 +19,8 @@ namespace TGL
 		virtual void SetViewPort(const TGL::ViewPort& viewPort) = 0;
 		virtual bool SetPipelineState(const TGL::PipelineState& pipeline) = 0;
 	};
+	
+	typedef std::shared_ptr<CommandList> CommandListPtr;
 
 	class CommandListD3D12 : public CommandList
 	{

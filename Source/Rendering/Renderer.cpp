@@ -1,5 +1,5 @@
 #include "Renderer.hpp"
-#include "../Devices/DeviceFactory.hpp"
+#include "../Devices/Graphics/GraphicsDevice.hpp"
 #include "../Rendering/Viewport.hpp"
 #include "../Rendering/CommandList.hpp"
 

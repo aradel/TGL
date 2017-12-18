@@ -1,6 +1,5 @@
 #ifndef RESOURCE_ALLOCATOR_H
 #define RESOURCE_ALLOCATOR_H
-#include "../Devices/Render/RenderDevice.hpp"
 #include <d3d12.h>
 namespace TGL 
 {

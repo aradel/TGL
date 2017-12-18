@@ -9,7 +9,7 @@ local DIR_APPLICATION = DIR_SOURCE .. "Application/"
 local DIR_DEVICES = DIR_SOURCE .. "Devices/"
 local DIR_DEVICES_INTERFACE = DIR_DEVICES .. "Interface/"
 local DIR_DEVICES_INPUT = DIR_DEVICES .. "Input/"
-local DIR_DEVICES_RENDER = DIR_DEVICES .. "Render/"
+local DIR_DEVICES_GRAPHICS = DIR_DEVICES .. "Graphics/"
 local DIR_MATH = DIR_SOURCE .. "Math/"
 local DIR_OS = DIR_SOURCE .. "OS/"
 local DIR_RENDERING = DIR_SOURCE .. "Rendering/"
@@ -42,7 +42,7 @@ local function PrintPaths()
 	print ("DIR_DEVICES", DIR_DEVICES)
 	print ("DIR_DEVICES_INTERFACE", DIR_DEVICES_INTERFACE)
 	print ("DIR_DEVICES_INPUT", DIR_DEVICES_INPUT)
-	print ("DIR_DEVICES_RENDER", DIR_DEVICES_RENDER)
+	print ("DIR_DEVICES_GRAPHICS", DIR_DEVICES_GRAPHICS)
 	
 	print ("")
 	print ("DIR_UTIL", DIR_UTIL)
@@ -99,7 +99,7 @@ local function SetupProject()
 				["Core/Devices"]			= { DIR_DEVICES .. "*.hpp", DIR_DEVICES .. "*.cpp" },
 				["Core/Devices/Interface"]	= { DIR_DEVICES_INTERFACE .. "*.hpp"},
 				["Core/Devices/Input"]		= { DIR_DEVICES_INPUT .. "*.hpp", DIR_DEVICES_INPUT .. "*.cpp" },
-				["Core/Devices/Render"]		= { DIR_DEVICES_RENDER .. "*.hpp", DIR_DEVICES_RENDER .. "*.cpp" },
+				["Core/Devices/Graphics"]	= { DIR_DEVICES_GRAPHICS .. "*.hpp", DIR_DEVICES_GRAPHICS .. "*.cpp" },
 				["Core/Math"] 				= { DIR_MATH .. "*.hpp", DIR_MATH .. "*.cpp" },
 				["Core/OS"] 				= { DIR_OS .. "*.hpp", DIR_OS .. "*.cpp" },
 				["Core/Rendering"]	 		= { DIR_RENDERING .. "*.hpp", DIR_RENDERING .. "*.cpp" },

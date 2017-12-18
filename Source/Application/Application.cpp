@@ -1,7 +1,7 @@
 #include "Application.hpp"
 #include "../Devices/DeviceFactory.hpp"
 #include "../OS/Timer.hpp"
-#include "../Devices/Render/RenderDeviceD3D12.hpp"
+#include "../Devices/Graphics/GraphicsDeviceD3D12.hpp"
 #include "../TGL.hpp"
 
 TGL::Application::Application() 
@@ -42,7 +42,7 @@ bool TGL::Application::Startup(const TGL::OS::APPLICATION_PARAM& aParam)
 	TGL::OS::WindowCreate(aParam, wndParam, hWnd);
 
 	pInputDevice = DeviceFactory::CreateInputDevice(config.inputDevice);
-	pRenderDevice = DeviceFactory::CreateRenderDevice(config.renderDevice);
+	pRenderDevice = DeviceFactory::CreateGraphicsDevice(config.renderDevice);
 
 	TGL::InputDeviceParameter inputParam;
 	inputParam.hWnd = Application::hWnd;

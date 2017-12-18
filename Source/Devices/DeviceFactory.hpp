@@ -7,11 +7,11 @@ namespace TGL
 	struct ApplicationConfig;
 	class IDevice;
 	class InputDevice;
-	class RenderDevice;
+	class GraphicsDevice;
 	namespace DeviceFactory 
 	{
 		TGL::InputDevice* CreateInputDevice(TGL::CFG_VAR type);
-		TGL::RenderDevice* CreateRenderDevice(TGL::CFG_VAR type);
+		TGL::GraphicsDevice* CreateGraphicsDevice(TGL::CFG_VAR type);
 
 		void DestroyDevice(TGL::IDevice* pDevice);
 	};

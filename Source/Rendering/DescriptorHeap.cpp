@@ -1,5 +1,5 @@
 #include "DescriptorHeap.hpp"
-#include "../Devices/Render/RenderDeviceD3D12.hpp"
+#include "../Devices/Graphics/GraphicsDeviceD3D12.hpp"
 
 
 //bool TGL::DescriptorHeapCollection::Initialize(TGL::D3D12Context& d3d)
