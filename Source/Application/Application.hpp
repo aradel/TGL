@@ -15,8 +15,8 @@ namespace TGL
 			TGL::Renderer renderer;
 			TGL::ResourcePool resourcePool;
 
-			TGL::InputDevice* pInputDevice = nullptr;
-			TGL::GraphicsDevice* pRenderDevice = nullptr;
+			TGL::InputDevicePtr pInputDevice = nullptr;
+			TGL::GraphicsDevicePtr pGraphicsDevice;
 
 			TGL::OS::WindowHandle hWnd;
 			TGL::OS::WINDOW_PARAM wndParam;

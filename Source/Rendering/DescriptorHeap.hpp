@@ -4,34 +4,34 @@
 namespace TGL 
 {
 	struct D3D12Context;
-
 	struct DescriptorHeap
 	{
 		ID3D12DescriptorHeap* pHeap = nullptr;
-		size_t nAllocated = 0;
-		size_t stride = 0;
+		size_t count = 0;
 		size_t size = 0;
+		size_t stride = 0;
 	};
 
-	//class DescriptorHeapCollection
-	//{
-	//	enum DescriptorType
-	//	{
-	//		Resources = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-	//		Samplers = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-	//		RenderTargets = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-	//		DepthStencil = D3D12_DESCRIPTOR_HEAP_TYPE_DSV
-	//	};
+	class DescriptorHeapCollection
+	{
+		public:
+			enum Type
+			{
+				Resources = 0,
+				Samplers = 1,
+				RenderTargets = 2,
+				DepthStencil = 3,
+			};
 
-	//	public:
-	//		DescriptorHeap bbDescriptor;
-	//		ID3D12DescriptorHeap* pBackBufferHeap = nullptr;
+			enum TypeCount { Count = 4 };
 
-	//	public:
-	//		bool Initialize(TGL::D3D12Context& pDevice);
-	//		void Shutdown();
+		public:
+			DescriptorHeap descriptorHeap[TypeCount::Count];
+		public:
+			bool Initialize();
+			void Shutdown();
 
-	//};
+	};
 }
 
 #endif

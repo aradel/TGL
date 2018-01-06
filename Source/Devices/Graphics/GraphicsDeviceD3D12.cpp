@@ -1,6 +1,10 @@
 #include "GraphicsDeviceD3D12.hpp"
-#include "../../Rendering/PipelineState.hpp"
+#include "../../Rendering/BackBuffer.hpp"
 #include "../../Rendering/CommandList.hpp"
+#include "../../Rendering/PipelineState.hpp"
+#include "../../Rendering/RenderTarget.hpp"
+#include "../../Rendering/ResourcePool.hpp"
+#include "../../Rendering/SwapChain.hpp"
 #include "../../Rendering/D3D12Helpers.hpp"
 #include "../../TGL.hpp"
 #include <dxgi.h>
@@ -19,17 +23,32 @@ namespace Helpers
 	static bool CreateD3DDevice(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d);
 	static bool CreateCommandQueue(TGL::D3D12Context& d3d);
 
-	// DXGI SwapChain Helpers
-	static bool EnumrateOutputs(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, TGL::DisplayInfo& display, const TGL::GraphicsSettings& settings);
-	static bool CreateSwapChain(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, const TGL::DisplayInfo& displayInfo, const TGL::GraphicsSettings& settings, const TGL::RenderDeviceParameter& deviceParam);
-
+	// DXGI SwapChain / BackBuffer Helpers
+	static bool EnumrateDisplay(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, const TGL::GraphicsSettings& settings, DXGI_FORMAT pixelFormat, TGL::DisplayInfo& out);
+	static bool CreateSwapChain(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, const TGL::GraphicsSettings& settings, DXGI_FORMAT pixelFormat, TGL::DisplayInfo& display, TGL::OS::WindowHandle hWnd, TGL::SwapChain& out);
+	static bool CreateRenderTargetFromSwapChain(TGL::D3D12Context& d3d, TGL::SwapChain& swapChain, size_t bufferIndex, TGL::RenderTarget& out);
 	// Support Functions
 	static bool CheckTearingSupport(TGL::DXGIContext& context);
-	static size_t NumberOfBackbuffers(bool trippleBuffering);
+	static size_t NumberOfBackbuffers(const TGL::GraphicsSettings& settings);
 	// Error Handling
 	static bool SetErrorIfFailed(HRESULT hResult);
 	static void ShowErrorMessage(DWORD eMsg);
 }
+
+
+bool Helpers::CreateRenderTargetFromSwapChain(TGL::D3D12Context& d3d, TGL::SwapChain& swapChain, size_t bufferIndex, TGL::RenderTarget& out)
+{
+	HRESULT local_result = E_FAIL;
+
+	//swapChain.pSwapChain->GetBuffer(i, IID_PPV_ARGS(&pResource));
+
+	//d3d.pDevice->CreateRenderTargetView(pResource, nullptr, bbCpuHandle);
+	//D3D12_CPU_DESCRIPTOR_HANDLE bbCpuHandle = backBuffer.bbHeap.pHeap->GetCPUDescriptorHandleForHeapStart();
+
+	return Helpers::SetErrorIfFailed(local_result);
+
+}
+
 
 TGL::GraphicsDeviceD3D12::GraphicsDeviceD3D12()
 {
@@ -45,67 +64,67 @@ bool TGL::GraphicsDeviceD3D12::Initialize(const TGL::RenderDeviceParameter& para
 #ifdef DEBUG
 	dbgCtrl.Initialize();
 #endif
-	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-	rtvHeapDesc.NumDescriptors = 3;
-	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
 	bool success = false;
-	success = Helpers::CreateDXGIFactory(dxgi);				if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
-	success = Helpers::EnumrateAdapters(dxgi, gfxCardInfo);	if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
-	success = Helpers::CreateD3DDevice(dxgi, d3d);			if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
-	success = Helpers::CreateCommandQueue(d3d);				if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
+	success = Helpers::CreateDXGIFactory(dxgi);				if (!success) { goto GFX_DEVICE_INIT_EXIT; }
+	success = Helpers::EnumrateAdapters(dxgi, gfxCardInfo);	if (!success) { goto GFX_DEVICE_INIT_EXIT; }
+	success = Helpers::CreateD3DDevice(dxgi, d3d);			if (!success) { goto GFX_DEVICE_INIT_EXIT; }
+	success = Helpers::CreateCommandQueue(d3d);				if (!success) { goto GFX_DEVICE_INIT_EXIT; }
 
-	// Temp Code
-	HRESULT local_result = d3d.pDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&bbHeap.pHeap));
-	bbHeap.stride = d3d.pDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	bbHeap.nAllocated = rtvHeapDesc.NumDescriptors;
-	bbHeap.size = bbHeap.stride * bbHeap.nAllocated;
+	success = SUCCEEDED(dxgi.pFactory->MakeWindowAssociation(param.hWnd, DXGI_MWA_NO_ALT_ENTER));
 
-	success = Helpers::SetErrorIfFailed(local_result);
-	if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
-
-
-	// Break Out later to separate Function
-	success = Helpers::EnumrateOutputs(dxgi, d3d, displayInfo, settings);			
-	if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
-	
-	success = Helpers::CreateSwapChain(dxgi, d3d, displayInfo, settings, param);	
-	if (!success) { goto RENDER_DEVICE_INITIALIZE_EXIT; }
-
-	D3D12_CPU_DESCRIPTOR_HANDLE bbCpuHandle = bbHeap.pHeap->GetCPUDescriptorHandleForHeapStart();
-	size_t stride = bbHeap.stride;
-
-	ID3D12Resource* x[4];
-	size_t nBuffers = Helpers::NumberOfBackbuffers(settings.trippleBuffering);
-	for (size_t i = 0; i < nBuffers; i++)
-	{
-		dxgi.pSwapChain->GetBuffer(i, IID_PPV_ARGS(&x[i]));
-		d3d.pDevice->CreateRenderTargetView(x[i], nullptr, bbCpuHandle);
-
-		bbCpuHandle = TGL::OffsetCpuDescriptor(bbCpuHandle, 1, stride);
-
-		x[i]->Release();
-	}
-
-RENDER_DEVICE_INITIALIZE_EXIT:
+GFX_DEVICE_INIT_EXIT:
 	if (!success)
 	{
 		Helpers::ShowErrorMessage(GetLastError());
 		Shutdown();
 	}
+	hWnd = param.hWnd;
+	return success;
+}
+
+bool TGL::GraphicsDeviceD3D12::CreateSwapChainAndBackBuffer(const TGL::GraphicsSettings& settings, TGL::ResourcePool& resoucePool, TGL::SwapChain& scOut, TGL::BackBuffer& bbOut)
+{
+	bool success = false;
+
+	TGL::SwapChain local_swapChain;
+	TGL::BackBuffer local_backBuffer;
+	TGL::DisplayInfo local_displayInfo;
+
+	DXGI_FORMAT pixelFormat = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	success = Helpers::EnumrateDisplay(dxgi, d3d, settings, pixelFormat, local_displayInfo);
+	if (!success) { goto GFX_DEVICE_CREATE_SC_AND_BB_EXIT; }
+
+	success = Helpers::CreateSwapChain(dxgi, d3d, settings, pixelFormat, local_displayInfo, hWnd, local_swapChain);
+	if (!success) { goto GFX_DEVICE_CREATE_SC_AND_BB_EXIT; }
+
+	for (size_t i = 0; i < local_swapChain.nBuffers && success; i++)
+	{
+		success = Helpers::CreateRenderTargetFromSwapChain(d3d, local_swapChain, i, local_backBuffer.renderTarget[i]);
+	}
+GFX_DEVICE_CREATE_SC_AND_BB_EXIT:
+	if (!success)
+	{
+		local_swapChain.Release();
+		for (size_t i = 0; i < local_swapChain.nBuffers && success; i++)
+		{
+			// Release SwapChain
+		}
+		//tmpBackBuffer.Release();
+	}
+	scOut = local_swapChain;
+	bbOut = local_backBuffer;
+	displayInfo = local_displayInfo;
+
 	return success;
 }
 
 void TGL::GraphicsDeviceD3D12::Shutdown()
 {
-	//descriptorCollection.Shutdown();
-
-	bbHeap.pHeap->Release();
-
 	if (dxgi.pFactory)		{ dxgi.pFactory->Release();			dxgi.pFactory = nullptr; }
 	if (dxgi.pAdapter)		{ dxgi.pAdapter->Release();			dxgi.pAdapter = nullptr; }
-	if (dxgi.pSwapChain)	{ dxgi.pSwapChain->Release();		dxgi.pSwapChain = nullptr; }
+
 
 	if (d3d.pCmdQueue)		{ d3d.pCmdQueue->Release();			d3d.pCmdQueue = nullptr; }
 	if (d3d.pDevice)		{ d3d.pDevice->Release();			d3d.pDevice = nullptr; }
@@ -113,6 +132,11 @@ void TGL::GraphicsDeviceD3D12::Shutdown()
 #ifdef DEBUG
 	dbgCtrl.Release();
 #endif
+}
+
+bool TGL::GraphicsDeviceD3D12::CreateRenderTarget(TGL::RenderTarget& out)
+{
+	return false; // not implemented
 }
 
 TGL::CommandListPtr TGL::GraphicsDeviceD3D12::CreateCommandList()
@@ -136,6 +160,7 @@ TGL::CommandListPtr TGL::GraphicsDeviceD3D12::CreateCommandList()
 
 	local_result = d3d.pDevice->CreateCommandList(gpuMask, type, pLocalAllocator, nullptr, IID_PPV_ARGS(&pLocalCmdList));
 	success = SUCCEEDED(local_result);	
+
 RENDER_DEVICE_CREATE_CMD_LIST_EXIT:
 	TGL::CommandListPtr local_return(nullptr);
 	if (success)
@@ -155,7 +180,6 @@ RENDER_DEVICE_CREATE_CMD_LIST_EXIT:
 	return local_return;
 }
 
-
 void TGL::GraphicsDeviceD3D12::ExecuteCommandList(TGL::CommandList* pCmdList)
 {
 	CommandListD3D12* pList = dynamic_cast<CommandListD3D12*>(pCmdList);
@@ -165,7 +189,6 @@ void TGL::GraphicsDeviceD3D12::ExecuteCommandList(TGL::CommandList* pCmdList)
 		d3d.pCmdQueue->ExecuteCommandLists(1, ppCommandLists);
 	}	
 }
-
 
 void TGL::GraphicsDeviceD3D12::OnScreenSizeChanged(const TGL::ScreenSize& size)
 {
@@ -243,7 +266,7 @@ bool Helpers::CreateCommandQueue(TGL::D3D12Context& d3d)
 // DXGI SwapChain Helpers
 //
 
-bool Helpers::EnumrateOutputs(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, TGL::DisplayInfo& display, const TGL::GraphicsSettings& settings)
+bool Helpers::EnumrateDisplay(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, const TGL::GraphicsSettings& settings, DXGI_FORMAT pixelFormat, TGL::DisplayInfo& out)
 {
 	// This functions is stupid, and will remain stupid until there is a need to properly enumrate all outputs.
 	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
@@ -262,7 +285,7 @@ bool Helpers::EnumrateOutputs(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, TG
 		DXGI_MODE_DESC modeToMatch;		ZeroMemory(&modeToMatch, sizeof(DXGI_MODE_DESC));
 		DXGI_MODE_DESC modeFound;		ZeroMemory(&modeFound, sizeof(DXGI_MODE_DESC));
 
-		modeToMatch.Format = dxgi.bbPixelFormat;
+		modeToMatch.Format = pixelFormat;
 		modeToMatch.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 		modeToMatch.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 		modeToMatch.Width = settings.screenSize.xWidth;
@@ -270,12 +293,12 @@ bool Helpers::EnumrateOutputs(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, TG
 
 		local_result = pOutput->GetDesc(&outputDesc);
 		if (FAILED(local_result)) { break; }
-		display.name = converter.to_bytes(outputDesc.DeviceName).c_str();
+		out.name = converter.to_bytes(outputDesc.DeviceName).c_str();
 
 		local_result = pOutput->FindClosestMatchingMode(&modeToMatch, &modeFound, d3d.pDevice);
 		if (FAILED(local_result)) { break; }
-		display.refreshDenominator = modeFound.RefreshRate.Denominator;
-		display.refreshNumerator = modeFound.RefreshRate.Numerator;
+		out.refreshDenominator = modeFound.RefreshRate.Denominator;
+		out.refreshNumerator = modeFound.RefreshRate.Numerator;
 		break;
 	}
 
@@ -284,27 +307,30 @@ bool Helpers::EnumrateOutputs(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, TG
 	return Helpers::SetErrorIfFailed(local_result);
 }
 
-bool Helpers::CreateSwapChain(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, const TGL::DisplayInfo& displayInfo, const TGL::GraphicsSettings& settings, const TGL::RenderDeviceParameter& deviceParam)
+bool Helpers::CreateSwapChain(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, const TGL::GraphicsSettings& settings, DXGI_FORMAT pixelFormat, TGL::DisplayInfo& display, TGL::OS::WindowHandle hWnd, TGL::SwapChain& out)
 {
+
+	size_t nBuffers = Helpers::NumberOfBackbuffers(settings);
+
 	//Create Swap Chain	
 	UINT usageFlag = DXGI_USAGE_BACK_BUFFER;// | DXGI_USAGE_RENDER_TARGET_OUTPUT;// | DXGI_USAGE_SHARED | DXGI_USAGE_UNORDERED_ACCESS;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc;
 	swapChainDesc.Width = settings.screenSize.xWidth;
 	swapChainDesc.Height = settings.screenSize.yHeight;
-	swapChainDesc.Format = dxgi.bbPixelFormat;
+	swapChainDesc.Format = pixelFormat;
 	swapChainDesc.Stereo = false;
 	swapChainDesc.BufferUsage = usageFlag;
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0x0;
-	swapChainDesc.BufferCount = Helpers::NumberOfBackbuffers(settings.trippleBuffering);
-	swapChainDesc.Scaling = dxgi.scaling;
+	swapChainDesc.BufferCount = nBuffers;
+	swapChainDesc.Scaling = DXGI_SCALING::DXGI_SCALING_NONE;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT::DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.AlphaMode = DXGI_ALPHA_MODE::DXGI_ALPHA_MODE_UNSPECIFIED; //Might need to change later
 	swapChainDesc.Flags = 0x0;//Helpers::CheckTearingSupport(dxgi) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
 	DXGI_RATIONAL refreshRate;
-	refreshRate.Denominator = displayInfo.refreshDenominator;
-	refreshRate.Numerator = displayInfo.refreshNumerator;
+	refreshRate.Denominator = display.refreshDenominator;
+	refreshRate.Numerator = display.refreshNumerator;
 
 	DXGI_SWAP_CHAIN_FULLSCREEN_DESC swapChainFullscreenDesc;
 	swapChainFullscreenDesc.RefreshRate = refreshRate;
@@ -312,12 +338,13 @@ bool Helpers::CreateSwapChain(TGL::DXGIContext& dxgi, TGL::D3D12Context& d3d, co
 	swapChainFullscreenDesc.Windowed = settings.fullscreen;
 	swapChainFullscreenDesc.Scaling = DXGI_MODE_SCALING::DXGI_MODE_SCALING_UNSPECIFIED;
 
-	HRESULT local_result = dxgi.pFactory->CreateSwapChainForHwnd(d3d.pCmdQueue, deviceParam.hWnd, &swapChainDesc, nullptr, nullptr, &dxgi.pSwapChain);
+	HRESULT local_result = dxgi.pFactory->CreateSwapChainForHwnd(d3d.pCmdQueue, hWnd, &swapChainDesc, nullptr, nullptr, &out.pSwapChain);
 
-	if (!FAILED(local_result))
+	if (SUCCEEDED(local_result)) 
 	{
-		local_result = dxgi.pFactory->MakeWindowAssociation(deviceParam.hWnd, DXGI_MWA_NO_ALT_ENTER);
+		out.nBuffers = nBuffers;
 	}
+
 	return Helpers::SetErrorIfFailed(local_result);
 }
 
@@ -332,9 +359,9 @@ bool Helpers::CheckTearingSupport(TGL::DXGIContext& dxgi)
 	return SUCCEEDED(local_result) && allowTearing;
 }
 
-size_t Helpers::NumberOfBackbuffers(bool trippleBuffering)
+size_t Helpers::NumberOfBackbuffers(const TGL::GraphicsSettings& settings)
 {
-	return trippleBuffering ? 2 : 3;
+	return settings.trippleBuffering ? 2 : 3;
 }
 
 bool Helpers::SetErrorIfFailed(HRESULT hResult)

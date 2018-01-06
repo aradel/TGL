@@ -24,8 +24,8 @@ bool TGL::Application::ReadConfig(TGL::ApplicationConfig& config)
 	//ToDo: Actually read from somewhere.
 	bool success = true;
 
-	config.renderDevice = TGL::InputDeviceType::RawInput;
-	config.inputDevice = TGL::RendererDeviceType::D3D12;
+	config.renderDevice = TGL::RendererDeviceType::D3D12;
+	config.inputDevice = TGL::InputDeviceType::RawInput;
 
 	gfxSettings.fullscreen = false;
 	gfxSettings.screenSize.xWidth = wndParam.width;
@@ -42,7 +42,7 @@ bool TGL::Application::Startup(const TGL::OS::APPLICATION_PARAM& aParam)
 	TGL::OS::WindowCreate(aParam, wndParam, hWnd);
 
 	pInputDevice = DeviceFactory::CreateInputDevice(config.inputDevice);
-	pRenderDevice = DeviceFactory::CreateGraphicsDevice(config.renderDevice);
+	pGraphicsDevice = DeviceFactory::CreateGraphicsDevice(config.renderDevice);
 
 	TGL::InputDeviceParameter inputParam;
 	inputParam.hWnd = Application::hWnd;
@@ -52,14 +52,14 @@ bool TGL::Application::Startup(const TGL::OS::APPLICATION_PARAM& aParam)
 	renderDeviceParam.hWnd = Application::hWnd;
 
 	if (!pInputDevice->Initialize(inputParam)) { return false; }
-	if (!pRenderDevice->Initialize(renderDeviceParam, gfxSettings)) { return false; }
+	if (!pGraphicsDevice->Initialize(renderDeviceParam, gfxSettings)) { return false; }
 
 	TGL::RendererParameter rendererParam;
 	rendererParam.gfxSettings = gfxSettings;
-	rendererParam.pDevice = pRenderDevice;
+	rendererParam.pDevice = pGraphicsDevice;
 
-	if (!resourcePool.Initialize()) { return false; }
-	if (!renderer.Initialize(rendererParam)) { return false; }
+	if (!resourcePool.Initialize(pGraphicsDevice)) { return false; }
+	if (!renderer.Initialize(resourcePool, rendererParam)) { return false; }
 
 	return true;
 }
@@ -70,10 +70,7 @@ void TGL::Application::Shutdown(const TGL::OS::APPLICATION_PARAM& aParam)
 	renderer.Shutdown();
 
 	pInputDevice->Shutdown();
-	pRenderDevice->Shutdown();
-
-	TGL::DeviceFactory::DestroyDevice(pInputDevice);
-	TGL::DeviceFactory::DestroyDevice(pRenderDevice);
+	pGraphicsDevice->Shutdown();
 
 	TGL::OS::WindowDestroy(hWnd, aParam);
 }

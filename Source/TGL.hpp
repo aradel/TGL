@@ -1,9 +1,13 @@
 #ifndef TGL_H
 #define TGL_H
 #include "OS/OperatingSystem.hpp"
+#include <memory>
 #include <cassert>
 namespace TGL
 {
+	template <class T> bool Clamp(T min_, T value_, T max_);
+	template <class T> bool InRange(T min_, T value_, T max_);
+
 #if _MSC_VER && !__INTEL_COMPILER
 	typedef unsigned __int8 int8;
 	typedef unsigned __int16 int16;
@@ -15,43 +19,28 @@ namespace TGL
 	typedef signed __int32 uint32;
 	typedef signed __int64 uint64;
 #endif
+
 	typedef uint32 TextureHandle;
 	typedef size_t CFG_VAR;
 
 	enum InputDeviceType { Native = 0, RawInput = 1 };
-	enum RendererDeviceType { D3D11 = 0, D3D12 = 1, OpenGL = 2 };
+	enum RendererDeviceType { D3D12 = 1, Vulcan = 2 };
 
-	struct ApplicationConfig
-	{
-		CFG_VAR inputDevice;
-		CFG_VAR renderDevice;
-	};
-
-	//////////////////////////////////
-	// Declares Helpers
-	//
-	template <class T> bool Clamp(T min_, T value_, T max_);
-	template <class T> bool InRange(T min_, T value_, T max_);
-
-	//////////////////////////////////
-	// Declares Graphics
-	//
+	struct ApplicationConfig;
 	struct DisplayInfo;
 	struct GraphicsCardInfo;
 	struct GraphicsSettings;
 	struct ScreenSize;
-	//////////////////////////////////
-	// Declares Input
-	//
+	
+	class CommandList;		typedef std::shared_ptr<CommandList> CommandListPtr;
+	class GraphicsDevice;	typedef std::shared_ptr<GraphicsDevice> GraphicsDevicePtr;
+	class InputDevice;		typedef std::shared_ptr<InputDevice> InputDevicePtr;
+
 	namespace Input
 	{
 		enum Key;
 	}
 
-
-	//////////////////////////////////
-	// Defines Helpers
-	//
 	template <class T> bool InRange(T min_, T value_, T max_)
 	{
 		return min_ < value_ && value_ < max_;
@@ -66,10 +55,11 @@ namespace TGL
 		return  local_return;
 	}
 
-
-	//////////////////////////////////
-	// Defines Graphics
-	//
+	struct ApplicationConfig
+	{
+		CFG_VAR inputDevice;
+		CFG_VAR renderDevice;
+	};
 
 	struct ScreenSize
 	{

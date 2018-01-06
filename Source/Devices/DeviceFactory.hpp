@@ -10,10 +10,8 @@ namespace TGL
 	class GraphicsDevice;
 	namespace DeviceFactory 
 	{
-		TGL::InputDevice* CreateInputDevice(TGL::CFG_VAR type);
-		TGL::GraphicsDevice* CreateGraphicsDevice(TGL::CFG_VAR type);
-
-		void DestroyDevice(TGL::IDevice* pDevice);
+		TGL::InputDevicePtr CreateInputDevice(TGL::CFG_VAR type);
+		TGL::GraphicsDevicePtr CreateGraphicsDevice(TGL::CFG_VAR type);
 	};
 }
 

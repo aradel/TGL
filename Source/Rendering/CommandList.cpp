@@ -12,6 +12,8 @@ void TGL::CommandListD3D12::Release()
 void TGL::CommandListD3D12::StartRecording() 
 {
 	assert(state == State::NotRecording);
+
+	//interlocked op success?
 	if (InterlockedIncrementAcquire(&state) != 0) 
 	{
 		HRESULT local_result = E_FAIL;
@@ -30,6 +32,7 @@ void TGL::CommandListD3D12::StopRecording()
 	HRESULT local_result = pCmdList->Close();
 	if (!SUCCEEDED(local_result)) { throw local_result; }
 
+	//interlocked op success?
 	if (InterlockedDecrementAcquire(&state) == 0) 
 	{
 		throw 0x1337;
@@ -38,15 +41,16 @@ void TGL::CommandListD3D12::StopRecording()
 	assert(state == State::NotRecording);
 }
 
-void TGL::CommandListD3D12::ClearRenderTarget(uint8 r, uint8 g, uint8 b) 
+void TGL::CommandListD3D12::ClearRenderTarget(TGL::RenderTarget& renderTarget, uint8 r, uint8 g, uint8 b) 
 {
 	VALIDATE_STATE;
 
 	float clearColor[4];
-	clearColor[0] = float(r / 255);
-	clearColor[1] = float(g / 255);
-	clearColor[2] = float(b / 255);
+	clearColor[0] = float(r) / 255.0f;
+	clearColor[1] = float(g) / 255.0f;
+	clearColor[2] = float(b) / 255.0f;
 	clearColor[3] = 1.0f;
+
 	//pCmdList->ClearRenderTargetView();
 
 	//Not Implemented
@@ -55,6 +59,7 @@ void TGL::CommandListD3D12::ClearRenderTarget(uint8 r, uint8 g, uint8 b)
 void TGL::CommandListD3D12::SetViewPort(const TGL::ViewPort& viewPort) 
 {
 	VALIDATE_STATE;
+
 	D3D12_VIEWPORT vp;
 	vp.TopLeftX = viewPort.xTopLeft;
 	vp.TopLeftY = viewPort.yTopLeft;
@@ -72,4 +77,9 @@ bool TGL::CommandListD3D12::SetPipelineState(const TGL::PipelineState& pipeline)
 	VALIDATE_STATE;
 
 	return false; //Not Implemented
+}
+
+void TGL::CommandListD3D12::Test() 
+{
+	//pCmdList->Set
 }

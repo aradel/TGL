@@ -5,9 +5,9 @@
 #include "../Devices/Graphics/GraphicsDeviceD3D12.hpp"
 #include "../TGL.hpp"
 
-TGL::InputDevice* TGL::DeviceFactory::CreateInputDevice(TGL::CFG_VAR type)
+TGL::InputDevicePtr TGL::DeviceFactory::CreateInputDevice(TGL::CFG_VAR type)
 {
-	TGL::InputDevice* local_return = nullptr;
+	TGL::InputDevicePtr local_return = nullptr;
 
 	switch (type)
 	{
@@ -16,7 +16,7 @@ TGL::InputDevice* TGL::DeviceFactory::CreateInputDevice(TGL::CFG_VAR type)
 			break;
 
 	case TGL::InputDeviceType::RawInput:
-			local_return = new TGL::RawInputDevice();
+			local_return.reset(new TGL::RawInputDevice());
 			break;
 	}
 
@@ -24,20 +24,16 @@ TGL::InputDevice* TGL::DeviceFactory::CreateInputDevice(TGL::CFG_VAR type)
 }
 
 
-TGL::GraphicsDevice* TGL::DeviceFactory::CreateGraphicsDevice(TGL::CFG_VAR type)
+TGL::GraphicsDevicePtr TGL::DeviceFactory::CreateGraphicsDevice(TGL::CFG_VAR type)
 {
-	TGL::GraphicsDevice* local_return = nullptr;
+	TGL::GraphicsDevicePtr local_return = nullptr;
 
 	switch (type)
 	{
-		case TGL::RendererDeviceType::D3D11:
-			local_return = nullptr;
-			break;
-
 		case TGL::RendererDeviceType::D3D12:
-			local_return = new TGL::GraphicsDeviceD3D12();
+			local_return.reset(new TGL::GraphicsDeviceD3D12());
 			break;
-		case TGL::RendererDeviceType::OpenGL:
+		case TGL::RendererDeviceType::Vulcan:
 			local_return = nullptr;
 			break;
 	}
@@ -45,12 +41,4 @@ TGL::GraphicsDevice* TGL::DeviceFactory::CreateGraphicsDevice(TGL::CFG_VAR type)
 	return local_return;
 }
 
-void TGL::DeviceFactory::DestroyDevice(TGL::IDevice* pDevice) 
-{
-	if (pDevice != nullptr) 
-	{
-		delete pDevice;
-		pDevice = nullptr;
-	}
-}
 #endif //  TGL_BUILD_WINDOWS

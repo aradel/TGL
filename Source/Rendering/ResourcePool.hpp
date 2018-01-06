@@ -1,7 +1,7 @@
 #ifndef RESOURCE_POOL_H
 #define RESOURCE_POOL_H
-
-
+//#include "DescriptorHeap.hpp"
+#include  "../TGL.hpp"
 namespace TGL 
 {
 	class ResourcePool
@@ -9,10 +9,11 @@ namespace TGL
 		private:
 			//TGL::DescriptorHeapCollection descriptorCollection;
 		public:
-			bool Initialize();
-			void Shutdown();
-
+			virtual bool Initialize(TGL::GraphicsDevicePtr pDevice);
+			virtual void Shutdown();
 	};
+
+
 }
 
 #endif
